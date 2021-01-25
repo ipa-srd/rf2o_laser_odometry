@@ -129,6 +129,7 @@ protected:
   //std::string LaserVarName;				//Name of the topic containing the scan lasers \laser_scan
   float fps;								//In Hz
   float fovh;								//Horizontal FOV
+  bool inversed_range;
   unsigned int cols;
   unsigned int cols_i;
   unsigned int width;

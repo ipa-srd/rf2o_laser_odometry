@@ -27,6 +27,7 @@ CLaserOdometry2D::CLaserOdometry2D() :
   verbose(false),
   module_initialized(false),
   first_laser_scan(true),
+  inversed_range(false),
   last_increment_(Pose3d::Identity()),
   laser_pose_on_robot_(Pose3d::Identity()),
   laser_pose_on_robot_inv_(Pose3d::Identity()),
@@ -63,6 +64,7 @@ void CLaserOdometry2D::init(const sensor_msgs::LaserScan& scan,
   fovh = std::abs(scan.angle_max - scan.angle_min); // Horizontal Laser's FOV
   ctf_levels = 5;                     // Coarse-to-Fine levels
   iter_irls  = 5;                      //Num iterations to solve iterative reweighted least squares
+  inversed_range = scan.angle_min > scan.angle_max ? true : false;
 
   Pose3d robot_initial_pose = Pose3d::Identity();
 
@@ -186,7 +188,15 @@ bool CLaserOdometry2D::odometryCalculation(const sensor_msgs::LaserScan& scan)
   //==================================================================================
 
   //copy laser scan to internal variable
-  range_wf = Eigen::Map<const Eigen::MatrixXf>(scan.ranges.data(), width, 1);
+
+  if (inversed_range)
+  {
+    std::vector<float> inversed_ranges = scan.ranges;
+    std::reverse(inversed_ranges.begin(), inversed_ranges.end());
+    range_wf = Eigen::Map<const Eigen::MatrixXf>(inversed_ranges.data(), width, 1);
+  }
+  else
+    range_wf = Eigen::Map<const Eigen::MatrixXf>(scan.ranges.data(), width, 1);
 
   ros::WallTime start = ros::WallTime::now();
 
